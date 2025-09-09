@@ -1,0 +1,183 @@
+openapi: 3.0.3
+info:
+  title: User Authentication API
+  description: API for user signup, signin, email OTP verification, password reset, and profile retrieval
+  version: 1.0.1
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /auth/signup:
+    post:
+      summary: User Signup
+      description: Creates a new user and sends an OTP for email verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+                - firstName
+                - lastName
+                - gender
+                - phone
+                - addressLine1
+                - city
+                - state
+                - country
+                - pin
+              properties:
+                username: { type: string, example: johndoe }
+                email: { type: string, format: email, example: johndoe@mailinator.com }
+                password: { type: string, format: password, example: password123 }
+                firstName: { type: string, example: John }
+                lastName: { type: string, example: Doe }
+                gender: { type: string, example: male }
+                profilePic: { type: string, format: uri, example: http://example.com/profile.jpg }
+                phone: { type: string, example: "+1234567890" }
+                addressLine1: { type: string, example: "123 Main St" }
+                addressLine2: { type: string, example: "Apt 4B" }
+                city: { type: string, example: "New York" }
+                state: { type: string, example: "NY" }
+                country: { type: string, example: "USA" }
+                pin: { type: string, example: "10001" }
+      responses:
+        "201": { description: OTP sent to email }
+        "400": { description: Missing fields or user already exists }
+        "500": { description: Signup failed }
+
+  /auth/verify-otp:
+    post:
+      summary: Verify OTP
+      description: Verifies the OTP sent to the user's email and completes signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, otp]
+              properties:
+                email: { type: string, format: email, example: johndoe@mailinator.com }
+                otp: { type: string, example: "123456" }
+      responses:
+        "201": { description: Signup complete }
+        "400": { description: Invalid OTP or expired }
+        "404": { description: Pending user not found }
+        "500": { description: OTP verification failed }
+
+  /auth/signin:
+    post:
+      summary: User Signin
+      description: Sign in with email and password. Returns JWT and user data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, example: johndoe@mailinator.com }
+                password: { type: string, format: password, example: password123 }
+      responses:
+        "200": { description: Signin successful }
+        "401": { description: Invalid credentials }
+        "404": { description: User not found }
+        "500": { description: Signin failed }
+
+  /auth/forgot-password:
+    post:
+      summary: Request Password Reset
+      description: Sends an OTP to the user's email to reset password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email, example: johndoe@mailinator.com }
+      responses:
+        "200": { description: OTP sent }
+        "404": { description: User not found }
+        "500": { description: Failed to send OTP }
+
+  /auth/reset-password:
+    post:
+      summary: Reset Password
+      description: Verifies OTP and updates the user's password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, otp, newPassword]
+              properties:
+                email: { type: string, format: email, example: johndoe@mailinator.com }
+                otp: { type: string, example: "123456" }
+                newPassword: { type: string, format: password, example: "newPassword123" }
+      responses:
+        "200": { description: Password reset successful }
+        "400": { description: Invalid OTP or expired }
+        "404": { description: User not found }
+        "500": { description: Password reset failed }
+
+  /auth/change-password:
+    post:
+      summary: Change Password
+      description: Allows user to change password by providing old and new password
+      security:
+        - bearerAuth: []   # 👈 JWT required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, newPassword]
+              properties:
+                email: { type: string, format: email, example: johndoe@mailinator.com }
+                password: { type: string, format: password, example: oldPassword123 }
+                newPassword: { type: string, format: password, example: newPassword456 }
+      responses:
+        "200": { description: Password changed successfully }
+        "400": { description: Missing required fields }
+        "401": { description: Invalid credentials }
+        "404": { description: User not found }
+        "500": { description: Password change failed }
+
+  /users/getUserProfile/{id}:
+    get:
+      summary: Get User Profile
+      description: Retrieves the profile information of a user by ID
+      security:
+        - bearerAuth: []   # 👈 JWT required
+      tags:
+        - Users Api
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+          description: The ID of the user
+      responses:
+        "200": { description: User profile retrieved successfully }
+        "400": { description: Missing user ID }
+        "404": { description: User not found }
+        "500": { description: Server error }

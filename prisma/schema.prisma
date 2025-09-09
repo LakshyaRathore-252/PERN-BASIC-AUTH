@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt      @id @default(autoincrement())
+  username     String      @unique
+  email        String      @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  gender       String?
+  isVerified   Boolean     @default(false)
+  status       String      @default("active")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  profile      UserProfile?
+  otpRecords   OtpVerification[]
+}
+
+model UserProfile {
+  id          BigInt   @id @default(autoincrement())
+  profilePic  String?
+  phone       String?
+  addressLine1 String?
+  addressLine2 String?
+  city        String?
+  state       String?
+  country     String?
+  pin         String?
+
+  userId BigInt @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PendingUser {
+  id           BigInt   @id @default(autoincrement())
+  username     String
+  email        String   @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  gender       String?
+  profilePic   String?
+  phone        String?
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  country      String?
+  pin          String?
+  createdAt    DateTime @default(now())
+}
+
+model OtpVerification {
+  id        BigInt   @id @default(autoincrement())
+  otp       String
+  userId    BigInt?  
+  email     String?  
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
