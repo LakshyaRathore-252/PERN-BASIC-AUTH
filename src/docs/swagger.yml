@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: User Authentication API
   description: API for user signup, signin, email OTP verification, password reset, and profile retrieval
-  version: 1.0.1
+  version: 1.0.2
 
 servers:
   - url: http://localhost:5000/api
@@ -143,7 +143,7 @@ paths:
       summary: Change Password
       description: Allows user to change password by providing old and new password
       security:
-        - bearerAuth: []   # 👈 JWT required
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -162,14 +162,22 @@ paths:
         "404": { description: User not found }
         "500": { description: Password change failed }
 
+  /auth/logout:
+    post:
+      summary: Logout User
+      description: Clears the JWT cookie to log the user out
+      responses:
+        "200": { description: Logout successful }
+        "500": { description: Logout failed }
+
   /users/getUserProfile/{id}:
     get:
-      summary: Get User Profile
+      summary: Get User Profile by ID
       description: Retrieves the profile information of a user by ID
       security:
-        - bearerAuth: []   # 👈 JWT required
+        - bearerAuth: []
       tags:
-        - Users Api
+        - Users API
       parameters:
         - in: path
           name: id
@@ -181,3 +189,21 @@ paths:
         "400": { description: Missing user ID }
         "404": { description: User not found }
         "500": { description: Server error }
+
+  /users/me:
+    get:
+      summary: Get Logged-in User Profile
+      description: Retrieves the profile information of the currently logged-in user
+      security:
+        - bearerAuth: []
+      tags:
+        - Users API
+      responses:
+        "200": 
+          description: User profile retrieved successfully
+        "401": 
+          description: Unauthorized / Invalid token
+        "404": 
+          description: User not found
+        "500": 
+          description: Server error

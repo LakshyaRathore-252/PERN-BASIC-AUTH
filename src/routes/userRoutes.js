@@ -1,12 +1,13 @@
 import { Router } from "express";
-import { getUserProfile } from "../controllers/userController.js";
+import { getUserProfile, getUserProfileById } from "../controllers/userController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
 
 // User Routess
-router.get("/getUserProfile/:id", authMiddleware, getUserProfile);
+router.get("/getUserProfile/:id", authMiddleware, getUserProfileById);
+router.get("/me", authMiddleware, getUserProfile);
 
 
 export default router;
