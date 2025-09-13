@@ -9,6 +9,7 @@ import {
   logout,
 } from "../controllers/authController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+import { oauthLogin } from "../controllers/oauth.controller.js";
 
 const router = Router();
 
@@ -18,6 +19,9 @@ router.post("/verify-otp", verifySignupOtp);
 
 // Login
 router.post("/signin", signin);
+
+// oauthLogin
+router.post("/oauth/login", oauthLogin);
 
 // Password reset
 router.post("/forgot-password", forgotPassword);
